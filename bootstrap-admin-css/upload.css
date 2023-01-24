@@ -1,0 +1,4 @@
+.fileContainer { margin: 5px;  }
+.uploadThumb { position: relative;  }
+.uploadThumb > .delete-file { position: absolute; top: 5px; right: 5px; color: red; display: none;  }
+.uploadThumb:hover > .delete-file { display: block; }

@@ -1,0 +1,7 @@
+/** Sidebar navigation **/
+.nav-sidebar { margin-left: -20px;  margin-right: -21px;  margin-bottom: 20px; }
+.nav-sidebar > li > a {  padding-left: 20px;  padding-right: 20px; display: block; color:#FFFFFF; }
+.nav-sidebar .has-dropdown >  a { background: url('../images/drop-blue.png') no-repeat; background-position: right 7% center;  }
+.nav-sidebar .has-dropdown >  a.collapsed { background: url('../images/drop-up-blue.png') no-repeat; background-position: right 7% center;  }
+
+.nav-sidebar li ul.nav { padding-left: 30px;  }

@@ -1,0 +1,562 @@
+body
+{
+	 background-image: /*url(/web/20150106135035/https://essexfunding.com/images/bg.png),*/ linear-gradient(to bottom, #ffffff 0%,#ffffff 19%,#6092c1 100%);
+	 background-attachment:fixed;
+}
+.header {
+	padding:20px 0 0 0;
+	min-height:120px;
+}
+
+.navigation-small-item { text-transform:uppercase; }
+.navigation-small-item a {color:#FFFFFF; font-size:14px; text-decoration:none; display:block; padding:10px; border-bottom:1px solid #02417A;}
+.navigation-small-item a:hover { background-color:#02417A; }
+
+.lead-container {
+	/* background:#02417a; */
+	padding:20px;
+	/*background-image: -webkit-gradient(
+		linear,
+		left top,
+		left bottom,
+		color-stop(0, #02407A),
+		color-stop(1, #298AF2)
+	);
+	background-image: -o-linear-gradient(bottom, #02407A 0%, #298AF2 100%);
+	background-image: -moz-linear-gradient(bottom, #02407A 0%, #298AF2 100%);
+	background-image: -webkit-linear-gradient(bottom, #02407A 0%, #298AF2 100%);
+	background-image: -ms-linear-gradient(bottom, #02407A 0%, #298AF2 100%);
+	background-image: linear-gradient(to bottom, #02407A 0%, #298AF2 100%);*/
+	background-color: #02417a;
+}
+.lead-container h2 {
+	color:#fff;
+	font-size:35px;
+	font-family: 'Conv_BEBASNEUE_0', Arial;
+	margin:6px 0;
+}
+.content-container {
+	background:#fff;
+	padding:20px;
+}
+.bullet {
+	padding-left:80px;
+	min-height:30px;
+	margin-bottom:10px;
+	line-height:20px;
+}
+
+.bullet p{ padding-top:5px; }
+
+.one {
+	background:url('../images/bullet-one_.png') no-repeat left top;
+}
+.two {
+	background:url('../images/bullet-two_.png') no-repeat left top;
+}
+.three {
+	background:url('../images/bullet-three_.png') no-repeat left top;
+}
+.four {
+	background:url('../images/bullet-four_.png') no-repeat left top;
+}
+.five {
+	background:url('../images/bullet-five_.png') no-repeat left top;
+}
+.six{
+	background:url('../images/bullet-six_.png') no-repeat left top;
+}
+
+.seven{
+	background:url('../images/bullet-seven_.png') no-repeat left top;
+}
+.footer {
+	background:#5a8b04;
+	color:#fff;
+	font-size:11px;
+	padding:0 0 20px 0;
+	/*font-family: 'Source Sans Pro', sans-serif;*/
+}
+
+.footer_application{
+	background:#5a8b04;
+	color:#fff;
+	font-size:11px;
+	padding:0 0 20px 0;
+}
+
+.footer2 {
+	padding-top:20px;
+}
+.login {
+	font-size:12px;
+}
+.login .col-md-5, .login .col-md-2 {
+	padding:0 2px;
+}
+.login .form-control {
+	display: block;
+	width: 100%;
+	padding: 2px;
+	height:24px;
+	color: #555;
+	background-color: #fff;
+	background-image: none;
+	border: 1px solid #ccc;
+	border-radius: 0;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+	-webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+	transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+}
+.login .form-group, .login .navbar-form {
+	width:100%;
+}
+.login .btn-login {
+	display: inline-block;
+	margin-bottom: 0;
+	font-size: 14px;
+	color:#fff;
+	text-transform:uppercase;
+	font-weight: normal;
+	background:#02417a;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	background-image: none;
+	border: 1px solid transparent;
+	border-radius: 0;
+	padding:1px 12px;
+}
+.orange-btn {
+	font-family: 'Conv_BEBASNEUE_0', Arial;
+	font-size:24px;
+	padding:5px 50px;
+	background:#ec761f;
+	border:none;
+	/*box-shadow: 1px 1px 1px #000000;*/
+	border: 3px solid #fff;
+}
+.orange-btn:hover {
+	background:#fd982c;
+	border: 3px solid #D4D4D4;
+}
+
+.blue-border {
+	border: 3px solid #02417A;
+}
+
+.green-btn {
+	font-family: 'Conv_BEBASNEUE_0', Arial;
+	font-size:24px;
+	padding:5px 50px;
+	background:#9aca45;
+	border:none;
+	/*box-shadow: 1px 1px 1px #000000;*/
+	border: 2px solid #02417A;
+}
+.green-btn:hover {
+	background:#99bf19;
+}
+
+ul.footer-links {
+	list-style:none;
+	padding:0;
+}
+ul.footer-links li {
+	float:left;
+}
+
+ul.footer-links li a{
+	float:left;
+	color:#fff;
+	padding:0 10px;
+	border-right:1px solid #fff;
+}
+h2.title {
+	font-family: 'bebas_neue_regularregular', Arial;
+	font-size:35px;
+	color:#6092c1;
+	margin-bottom:20px;
+}
+h3.small-title {
+	font-family: 'bebas_neue_regularregular', Arial;
+	font-size:25px;
+	color:#000;
+}
+.content-banner {
+	position:relative;
+}
+.content-banner h1.top {
+	position:absolute;
+	top:25%;
+	left:30px;
+	font-size:60px;
+}
+.content-banner h1 {
+	position:absolute;
+	font-size:96px;
+	font-family: 'bebas_neue_regularregular', Arial;
+	color:#6092c1;
+	text-shadow:1px 0 0 #fff;
+	top:40%;
+	left:50px;
+	line-height: .9;
+}
+.content-banner h4 {
+	position:absolute;
+	text-align:center;
+	top:0;
+	width:100%;
+	font-family: 'bebas_neue_regularregular', Arial;
+	font-size:29px;
+}
+select {
+	width:100%;
+}
+p.small {
+	font-size:11px;
+	font-style:italic;
+	text-align: justify;
+}
+.radio label, .checkbox label,.form-horizontal .checkbox-inline, label {
+	font-family: "Raavi",Helvetica,Arial,sans-serif;
+	font-weight: normal;
+	font-size: 14px;
+}
+p.scroll {
+	height:200px;
+	border:1px solid #dedede;
+	overflow: auto;
+	padding:20px;
+}
+strong.green {
+	font-weight:normal;
+	color:#02417a;
+}
+strong.footer-title {
+	font-family: 'Conv_BEBASNEUE_0', Arial;
+	font-size:21px;
+	font-weight:normal;
+}
+ul.nav li.home {
+	width:14.2857%;
+}
+ul.nav li.about {
+	width:14.2857%;
+} 
+ul.nav li.leasing {
+	width:14.2857%;
+} 
+ul.nav li.faq {
+	width:14.2857%;
+} 
+ul.nav li.markets {
+	width:14.2857%;
+} 
+ul.nav li.vendor {
+	width:14.2857%;
+} 
+
+ul.nav li.office-furniture {
+	width:14.2857%;
+} 
+
+ul.nav li.contact {
+	width:14.2857%;
+} 
+
+
+
+
+@media (max-width: 768px) {
+	.header {
+		padding:20px;
+	}
+	.navbar {
+		max-height:50px;
+	}
+	.navbar-nav {
+		font-size:11px;
+		margin:0;
+
+	}
+	ul.margin-adjustment{
+		margin-top:-55px;
+	}
+	
+	ul.yii-adjustment{
+		font-weight:bold;
+	}
+	ul.nav li.home {
+		width:33px;
+	}
+	ul.nav li.about {
+		width:85px;
+	} 
+	ul.nav li.leasing {
+		width:128px;
+	} 
+	ul.nav li.faq {
+		width:63px;
+	} 
+	ul.nav li.markets {
+		width:125px;
+	} 
+	ul.nav li.vendor {
+		width:143px;
+	} 
+	ul.nav li.contact {
+		width:111px;
+	} 
+	ul.nav li.office-furniture {
+		width:125px;
+	} 
+	
+	
+}
+
+@media (max-width: 480px) {
+	ul.nav li.home, ul.nav li.about, ul.nav li.leasing, ul.nav li.faq, ul.nav li.markets, ul.nav li.vendor, ul.nav li.contact {
+		width:100%;
+	}
+	.navbar-nav {
+		margin:0 0px;
+	}
+}
+.footer a {
+	color:#fff;
+}
+
+.exempt{
+	margin-top: -18px;
+}
+
+.other{
+	margin-top: 12px;
+	margin-left: -15px;
+}
+
+.other-input{
+	margin-top: 5px;
+	margin-left: auto;
+}
+
+.orange2-btn {
+	font-family: 'bebas_neue_regularregular', Arial;
+	font-size:24px;
+	padding:5px 50px;
+	background:#f67d24;
+	border:none;
+	position: absolute; 
+	margin-top: -65px;
+   
+}
+.orange2-btn:hover {
+	background:#ec761f;
+}
+
+.unsubscribe {
+	background:#fbfdf8;
+	margin-top: 50px;
+	margin-bottom:50px;
+	border:2px solid #c9d5b4; 
+	border-radius:5px;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	-o-border-radius:5px;
+	padding:30px 5px;
+}
+
+.unsubscribe .text {
+	
+    width:100%; /* optional, though better have one */
+	font-family: 'bebas_neue_regularregular', Arial;
+	color: #255e94;
+	font-size: 23pt;
+}
+
+.unsubscribe2 {
+
+    width:100%; /* optional, though better have one */
+	font-family: Arial;
+	color: #5d6063;
+	font-size: 16pt;
+}
+
+.unsubscribe3 {
+
+    width:100%; /* optional, though better have one */
+	font-family: Arial;
+	color: #5d6063;
+	font-size: 16pt;
+}
+
+
+.subscribe {
+	color: #255e94;
+}
+	
+.essex {
+    width:100%; /* optional, though better have one */
+	font-family: 'bebas_neue_regularregular', Arial;
+	color: #5d6063;
+	font-size: 18pt;
+}
+
+.essex2 {
+	color: #255e94;
+}
+
+p {
+	text-align: justify;
+}
+.bottom {
+	background:#9aca45;
+	padding:20px;
+	color:#02417a;
+	margin-bottom:20px;
+}
+.bottom  h2 {
+	font-family: 'Conv_BEBASNEUE_0', Arial;
+	font-size:31px;
+	margin:0 0 15px 0;
+}
+
+.equip {
+	/*border: 5px solid #186abe;*/
+}
+
+.footer-spaces {
+	padding:0;
+}
+
+@media (max-width: 768px) {
+	.footer-spaces {
+		padding-right:15px;
+		padding-left:15px;
+		font-size: 8pt;
+	}
+}
+.footer3{
+	font-size: 14px;
+}
+
+
+.content-banner h1.banner {
+position: absolute;
+top: 13%;
+left: 55px;
+font-size: 96px;
+}
+
+.content-banner h1.banner2 {
+position: absolute;
+font-size: 96px;
+font-family: 'bebas_neue_regularregular', Arial;
+color: #6092c1;
+text-shadow: 1px 0 0 #D1D1D1
+top: 40%;
+left: 55px;
+line-height: .9;
+}
+
+.content-banner h1.banner3 {
+position: absolute;
+font-size: 96px;
+font-family: 'bebas_neue_regularregular', Arial;
+color: #6092c1;
+text-shadow: 1px 0 0 #D1D1D1
+top: 40%;
+left: 65px;
+line-height: .9;
+}
+
+.content-banner h1.top1 {
+	position:absolute;
+	top:29%;
+	left:30px;
+	font-size:63px;
+	font-family: 'Oswald', sans-serif;
+}
+
+.content-banner h1.top2 {
+	position:absolute;
+	top:25%;
+	margin-left:105px;
+	font-size:96px;
+	font-family: 'bebas_neue_regularregular',Arial;
+	left: 85px;
+}
+
+.content-banner h1.top3 {
+	font-family: 'bebas_neue_regularregular',Arial;
+	margin-top:45px;
+	font-size:96px;
+}
+
+.errorMessage, span.required {color:red;}
+
+#application-form .errorMessage {font-size: 10px;}
+#application-form input.error {background-color: #f2dede;}
+
+ul.navbar-nav {
+	border-bottom:5px solid #d4d4d4;
+}
+ul.navbar-nav li {
+	display:inline;
+}
+ul.navbar-nav li a {
+	 display: inline-block;
+	  width: 100%;
+	  padding: .75rem 0;
+	  margin: 0;
+	  text-decoration: none;
+	  color: #333;
+	  position:relative;
+}
+.home:hover ~ hr {
+  margin-left: 0 !important;
+}
+
+.about:hover ~ hr {
+  margin-left: 14.2857% !important;
+}
+
+.leasing:hover ~ hr {
+  margin-left:28.5714% !important;
+}
+
+.markets:hover ~ hr {
+  margin-left:  42.8571% !important;
+}
+
+.office-furniture:hover ~ hr {
+  margin-left:57.1428% !important;
+}
+
+.vendor:hover ~ hr {
+  margin-left:  71.4285% !important;
+}
+
+.contact:hover ~ hr {
+  margin-left: 85.7142% !important;
+}
+ul.navbar-nav hr {
+  height: 5px;
+  width: 14.2857%;
+  margin: 0;
+  background: #003566;
+  border: none;
+  transition: .3s ease-in-out;
+  -moz-transition: .3s ease-in-out;
+  -webkit-transition: .3s ease-in-out;
+  position:absolute;
+  bottom:0;
+}
+

@@ -1,0 +1,25 @@
+
+/* css in this section will affect on md, lg, xl */
+@media (min-width: 992px) {
+	
+} 
+
+/* css in this section will affect on sm-xs */
+@media (max-width: 991px) {
+	
+}
+
+/* css in this section will affect on sm-xs */
+@media (max-width: 1199px) {
+	.responsive-margin-top { margin-top:10px; }
+}
+
+/* css in this section will affect on xs (mobile and tablet) */
+@media (max-width: 767px) {
+	
+}
+
+/* css in this section will affect on xs (mobile only) */
+@media (max-width: 480px) {
+	
+}

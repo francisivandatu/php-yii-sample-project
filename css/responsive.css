@@ -1,0 +1,46 @@
+
+/* css in this section will affect on md, lg, xl */
+@media (min-width: 992px) {
+
+} 
+
+/* css in this section will affect on sm-xs */
+@media (max-width: 991px) {
+	
+}
+
+/* css in this section will affect on xs (mobile and tablet) */
+@media (max-width: 767px) {
+	ul.nav li.home {
+	width:55px;
+	}
+	ul.nav li.about {
+		width:90px;
+	} 
+	ul.nav li.leasing {
+		width:160px;
+	} 
+	ul.nav li.faq {
+		width:70px;
+	} 
+	ul.nav li.markets {
+		width:140px;
+	} 
+	ul.nav li.vendor {
+		width:150px;
+	} 
+
+	ul.nav li.office-furniture {
+		width:150px;
+	} 
+
+	ul.nav li.contact {
+		width:100px;
+	} 
+	
+}
+
+/* css in this section will affect on xs (mobile only) */
+@media (max-width: 480px) {
+	
+}

@@ -1,0 +1,37 @@
+/* Move down content because we have a fixed navbar that is 50px tall */
+body { padding-top: 50px; }
+/** Global add-ons  **/
+.sub-header { padding-bottom: 10px; border-bottom: 1px solid #eee; }
+
+/** Main content **/
+.main {  padding: 20px; }
+.main .page-header {
+  margin-top: 0;
+}
+
+/** Placeholder dashboard ideas  **/
+.placeholders { margin-bottom: 30px;  text-align: center;}
+.placeholders h4 {  margin-bottom: 0;}
+.placeholder {  margin-bottom: 20px;}
+.placeholder img {  border-radius: 50%;}
+
+
+@media (min-width: 768px) {
+  .main { padding-left: 40px; padding-right: 40px; }
+}
+
+/* Fix for specific chrome browser for not rendering fonts and need repaint */
+body
+{
+    -webkit-animation-duration: 0.1s;
+	-webkit-animation-name: fontfix;
+	-webkit-animation-iteration-count: 1;
+	-webkit-animation-timing-function: linear;
+	-webkit-animation-delay: 0.1s;
+}
+
+@-webkit-keyframes fontfix{
+	from{ 	opacity: 1; }
+	to{	opacity: 1; }
+}
+/* end fix */
