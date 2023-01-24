@@ -1,0 +1,556 @@
+<?php
+
+class SiteController extends Controller
+{
+	// public $layout = 'dashboard';
+	public function filters()
+	{
+		return array(
+			'accessControl', 
+		);
+	}
+
+	public function accessRules()
+	{
+		return array(
+			array(
+				'allow',
+				'actions' => array('upload', 'logout'),
+				'users' => array('@'),
+			),
+			array(
+				'allow',
+				'actions' => array('login', 'register', 'forgotPassword', 'resetPassword', 'error', 'index', 'testEmail'),
+				'users' => array('*'),
+			),
+			array(
+				'deny',
+				'users' => array('*'),
+			),
+		);
+	}
+	
+	/**
+	 * Declares class-based actions.
+	 */
+	public function actions()
+	{
+		return array(
+			// captcha action renders the CAPTCHA image displayed on the contact page
+			'captcha'=>array(
+				'class'=>'CCaptchaAction',
+				'backColor'=>0xFFFFFF,
+			),
+			// page action renders "static" pages stored under 'protected/views/site/pages'
+			// They can be accessed via: index.php?r=site/page&view=FileName
+			'page'=>array(
+				'class'=>'CViewAction',
+			),
+		);
+	}
+
+	/**
+	 * This is the default 'index' action that is invoked
+	 * when an action is not explicitly requested by users.
+	 */
+	public function actionIndex()
+	{
+		$this->layout = 'layout_blank';
+		$this->render('index');
+	}
+	
+	/**
+	 * This is the action to handle external exceptions.
+	 */
+	public function actionError()
+	{
+		if($error=Yii::app()->errorHandler->error)
+		{
+			if(Yii::app()->request->isAjaxRequest)
+				echo $error['message'];
+			else
+				$this->render('error', $error);
+		}
+	}
+
+	/**
+	 * Displays the contact page
+	 */
+	public function actionContact()
+	{
+		$model=new ContactForm;
+		if(isset($_POST['ContactForm']))
+		{
+			$model->attributes=$_POST['ContactForm'];
+			if($model->validate())
+			{
+				$name='=?UTF-8?B?'.base64_encode($model->name).'?=';
+				$subject='=?UTF-8?B?'.base64_encode($model->subject).'?=';
+				$headers="From: $name <{$model->email}>\r\n".
+					"Reply-To: {$model->email}\r\n".
+					"MIME-Version: 1.0\r\n".
+					"Content-Type: text/plain; charset=UTF-8";
+
+				mail(Yii::app()->params['adminEmail'],$subject,$model->body,$headers);
+				Yii::app()->user->setFlash('contact','Thank you for contacting us. We will respond to you as soon as possible.');
+				$this->refresh();
+			}
+		}
+		$this->render('contact',array('model'=>$model));
+	}
+
+	/**
+	 * Displays the login page
+	 */
+	public function actionLogin($sendTo = null)
+	{
+		$redirectUrl = Yii::app()->user->returnUrl;
+		if ( $sendTo )
+		{
+			switch ( $sendTo )
+			{
+				case 'checkout' :
+				{
+					// $redirectUrl = array('checkout/index');
+					$redirectUrl = array('checkout/index', 'id' => $_SESSION['applicationFormId']);
+				}
+				break;
+				case 'checkoutDev' :
+				{
+					// $redirectUrl = array('checkout/index');
+					$redirectUrl = array('checkout/dev', 'id' => $_SESSION['applicationFormId']);
+				}
+				break;
+				case 'saveApplicationForm' :
+				{
+					$redirectUrl = array('account/saveApplicationForm');
+				}
+				break;
+			}
+		}
+			
+		if (!Yii::app()->user->isGuest)
+		{
+			$this->redirect($redirectUrl);
+		}
+
+		$model=new LoginForm;
+
+		// if it is ajax validation request
+		if(isset($_POST['ajax']) && $_POST['ajax']==='login-form')
+		{
+			echo CActiveForm::validate($model);
+			Yii::app()->end();
+		}
+
+		// collect user input data
+		if(isset($_POST['LoginForm']))
+		{
+			$model->attributes=$_POST['LoginForm'];
+			// validate user input and redirect to the previous page if valid
+			if($model->validate() && $model->login())
+			{
+				
+				$this->redirect($redirectUrl);
+				// $this->redirect(array('account/index'));
+			}
+		}
+		// display the login form
+		$this->render('login',array('model'=>$model, 'sendTo' => $sendTo));
+	}
+
+	/**
+	 * Logs out the current user and redirect to homepage.
+	 */
+	public function actionLogout()
+	{
+		Yii::app()->user->logout();
+		$this->redirect(Yii::app()->homeUrl);
+	}
+	
+	public function actionRegister($sendTo = null)
+	{
+		$account = new Account;
+		$user = new User;
+		$account->scenario = 'register';
+		$userBillingInfo = new UserBillingInfo;
+	
+		if (isset($_POST['submit']))
+		{
+			$connection = Yii::app()->db;
+			$transaction = $connection->beginTransaction();
+			$account->attributes = $_POST['Account'];
+			// $user->attributes = $_POST['User'];
+			// $userBillingInfo->attributes = $_POST['UserBillingInfo'];
+			
+			/* preset value */
+			$account->username = $account->email_address;
+			$account->type = 2;
+			$account->salt = $account->generateSalt();
+			
+			$userBillingInfo->country = Account::DEFAULT_COUNTRY;
+			$userBillingInfo->first_name = $user->first_name;
+			$userBillingInfo->last_name = $user->last_name;
+			
+			$valid = $account->validate() && $account->validateConfirmPassword($account->password);			
+			// $valid = $valid && $user->validate();
+			// $valid = $valid && $userBillingInfo->validate();
+			
+			$accountCheck = Account::model()->find(array(
+				'condition' => 'username = "'.$account->username.'" AND status = 1'
+			));
+			
+			if ( $accountCheck )
+			{
+				$valid = false;
+				$account->addError('email_address', 'The email address you enter already exist');
+			}
+
+            if(isset($_POST['g-recaptcha-response'])  && empty($_POST['g-recaptcha-response']))
+            {
+                $valid = false;
+                $account->addError("Recaptcha","Invalid reCAPTCHA");
+            }
+            else
+            {
+                $secret = '6LdR62QUAAAAAItOg127-mn1s3vJF_mMpy6-JfKB';
+
+                $verifyResponse = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret='.$secret.'&response='.$_POST['g-recaptcha-response']);
+
+                $responseData = json_decode($verifyResponse);
+
+                if(!$responseData->success)
+                {
+                    $valid = false;
+                    $account->addError("Recaptcha","Invalid reCAPTCHA");
+                }
+            }
+			
+			if ($valid)
+			{
+				try
+				{
+					$errorModelTrace = 'account';
+					if ($account->save(false))
+					{
+						$errorModelTrace = 'user';
+						$user->account_id = $account->getPrimaryKey();
+						if($user->save(false))
+						{
+							$errorModelTrace = 'UserBillingInfo';
+							$userBillingInfo->account_id = $account->getPrimaryKey();
+							if ( $userBillingInfo->save(false) )
+							{
+								$transaction->commit();
+								
+								//create a method to check if user
+								if ( !isset($_SESSION['applicationFormId']) )
+								{
+									Yii::app()->user->setFlash("success", "Your registration has been successful.");
+									$this->refresh();
+								}
+								else
+								{
+									//force autologin
+									$loginForm=new LoginForm;
+									$loginForm->username = $account->username;
+									$loginForm->password = $account->confirm_password;
+									$loginForm->login();
+									
+									//redirect to payment page
+									if ( $sendTo == 'checkout' )
+									{
+										$this->redirect(array('checkout/index', 'id' => $_SESSION['applicationFormId']));
+									}
+									elseif ( $sendTo == 'checkoutDev' )
+									{
+										$this->redirect(array('checkout/dev', 'id' => $_SESSION['applicationFormId']));
+									}
+									else
+									{
+										$this->redirect(array('account/saveApplicationForm'));
+									}
+								}
+							}
+						}
+					}
+					
+					//if one of the saving process failed display a default error message
+					Yii::app()->user->setFlash("danger", "Registration error,".$errorModelTrace." failed to save.");
+				}
+				catch (Exception $e)
+				{
+					$transaction->rollBack();
+					Yii::app()->user->setFlash("danger",  $e);
+				}
+			}
+		}
+	
+		$this->render('register',array(
+			'account'=>$account,
+			'user'=>$user,
+			'userBillingInfo' => $userBillingInfo,
+			'country' => Country::model()->findAll(array('condition'=>'status = 1')),
+			'sendTo' => $sendTo
+		));
+	}
+	
+	public function actionForgotPassword()
+	{
+		if ( isset($_POST['PHP_AUTH_EMAIL']) )
+		{
+			$account = Account::model()->active()->find(array(
+				'condition' => 'email_address = :email_address',
+				'params' => array(
+					':email_address' => $_POST['PHP_AUTH_EMAIL']
+				)
+			));
+			
+			if ( $account )
+			{
+				$token = new EmailToken;
+				$token->account_id = $account->id;
+				$token->token = sha1(time().$account->id);
+				
+				if($token->save(false)) 
+				{
+					//start sending email
+					/* $emailWrapper = new EmailWrapper;
+					$emailWrapper->setSubject('EssexFunding Change Password');
+					$emailWrapper->setReceivers(array(
+						 $account->email_address
+						//'francis.zeniark@gmail.com'
+					));
+					$emailWrapper->setBcc(array(
+						'reynana.zeniark@gmail.com'
+					)); */
+					
+					$resetPasswordLink = Yii::app()->createAbsoluteUrl('/site/resetPassword', array('token' => $token->token));
+					
+					$emailMessage = '
+						<td valign="top">
+							Hi,
+							<br />
+							
+							<p>
+								A password reset request has been activated for your user account '.$account->username.'. <Br /><br />
+								If you are the one who initiate this request, please click the link below to reset the password <br />
+								'.CHtml::link($resetPasswordLink, $resetPasswordLink).'
+								<Br /><br />
+								If you did not initiate this request, please ignore this email.
+								
+								<br /><br />
+								
+								Thanks, <br />
+								info@essexfunding.com
+							</p>
+							
+						</td>
+					';
+					
+					/* $emailWrapper->setMessage($emailMessage); */
+					
+					
+					{ 	//START - sendinBlue code block						
+						require(Yii::app()->basePath . '/extensions/sendinblue/Mailin.php');	
+						$mailin = new Mailin('https://api.sendinblue.com/v2.0', 'ZfPtnFAUDvjbG90q');			
+						$data = array(  
+							"subject" => 'EssexFunding Change Password',							
+							"to" => array($account->email_address => $account->email_address),
+							
+							// "to" => array('ninot.zeniark@gmail.com' => 'ninot.zeniark@gmail.com'),							
+							// "to" => array('chrisl.zeniark@gmail.com' => 'chrisl.zeniark@gmail.com'),							
+							
+							"from" => array("rob@essexfunding.com", "EssexFunding"),
+							"replyto" => array("rob@essexfunding.com" => "rob"),
+							// "bcc" => array('reynana.zeniark@gmail.com' => 'reynana.zeniark@gmail.com'),
+							
+							"html" => $emailMessage,
+						);
+						
+						$send_email = $mailin->send_email($data);									
+						
+						if ( isset($send_email['code']) AND $send_email['code'] == 'success' )
+						{	
+							Yii::app()->user->setFlash('success','Please check your email to complete the reset password process');
+							$this->refresh();
+						}
+						else
+						{
+							Yii::app()->user->setFlash('danger','An error occured. Please try again later.');
+							//an error occured. throw error message here
+							/* Dev::pv($send_email); */
+						}
+					}	//END sendInBlue Code Block
+					
+					// echo $emailWrapper->loadTemplate(); 
+					// exit;
+					
+					
+					/* if ( $emailWrapper->sendMessage() )
+					{
+						Yii::app()->user->setFlash('success','Please check your email to complete the reset password process');
+						$this->refresh();
+					} */
+				}
+			}
+			else
+			{
+				Yii::app()->user->setFlash('warning','This email address does not exist on our system');
+			}
+		}
+		
+		$this->render('forgotPasswordForm');
+	}
+	
+	public function actionTestEmail()
+	{
+
+		set_time_limit(0);
+
+		$urlPath = Yii::app()->createAbsoluteUrl('applicationForm/applicationWebView', array('id' => 446, 'accountId' => 158), 'http');
+		// echo $urlPath;exit;
+		$filename = 'HPHG, LLC. Lease Application'.'.pdf';
+		$pdfPath = Yii::getPathOfAlias('webroot').'/file-uploads/'.$filename;
+		
+		passthru("wkhtmltopdf -B '5mm' -L '5mm' -R '5mm' -T '5mm' '".$urlPath."' '".$pdfPath."'");
+		// exit ("wkhtmltopdf -B '5mm' -L '5mm' -R '5mm' -T '5mm' '".$urlPath."' '".$pdfPath."'");
+				
+		$newMessage = '<Br />
+		Thank you for your lease application. <Br /> <br />
+
+		<b style="color:red">ONE FINAL STEP NEEDED</b><br />
+
+		<ul>
+			<li>Please review the attached application for accuracy.</li>
+			<li>Once reviewed, <b><u>all principals must sign and date just above the "Credit Release" line</u></b>, allowing us to pull their personal credit report.</li>
+			<li>After executing, please reply back with the scanned document attached.
+				<ul>
+					<li>Alternatively, fax the signed application to (813) 837-3502.</li>
+				</ul>
+			</li>
+		</ul>
+
+		<br />
+
+		Upon receipt, we will be back to you within 48 hours with a credit decision. <Br /> <br />
+
+		In the interim, feel free to call us with any questions at (813) 443-4632. <br /><br />
+
+		Thank you,  <br /><br />
+ 
+		Essex Funding, Inc.  <Br />
+		<a href="https://www.essexfunding.com">www.essexfunding.com</a>';
+		
+		echo $newMessage;
+		
+		// echo $emailWrapper->loadTemplate($emailTemplate); exit;
+
+		// $resAdmin = $emailWrapper->sendMessage($emailTemplate);
+		
+		{	
+			// $sendBcc = array("chrisl.zeniark@gmail.com" => "chrisl");		
+			{
+				$fileUrl = 'http://essexfunding.com/file-uploads/'.$filename;
+				// $fileUrl = Yii::app()->baseUrl.'/file-uploads/'.$filename;
+				// echo $fileUrl; exit;
+				echo $fileUrl;
+				
+				require(Yii::app()->basePath . '/extensions/sendinblue/Mailin.php');	
+				$mailin = new Mailin('https://api.sendinblue.com/v2.0', 'ZfPtnFAUDvjbG90q');			
+				$data = array(  
+					"subject" => 'HPHG LLC, Inc. Lease Application',
+					"to" => array('tprice@caprockhp.com' => 'tprice@caprockhp.com'),
+					// "to" => array('francis.zeniark@gmail.com' => 'francis.zeniark@gmail.com'),
+					
+					"from" => array("rob@essexfunding.com", "EssexFunding"),
+					"replyto" => array("rob@essexfunding.com" => "rob"),
+					"bcc" => array(
+						// 'christiant.zeniark@gmail.com' => 'christiant.zeniark@gmail.com', 
+						
+						'rnewgen@gmail.com' => 'rnewgen@gmail.com', 
+						'rob@essexfunding.com' => 'rob@essexfunding.com', 
+						'bob@essexfunding.com' => 'bob@essexfunding.com', 
+					), 
+					"html" => $newMessage,
+					"attachment" => array($fileUrl),
+				);
+				// $send_email = $mailin->send_email($data);									
+				// var_dump($send_email);
+			}
+		} 
+		
+		
+		// unlink($pdfPath);
+	}
+		
+	
+	public function actionResetPassword($token)
+	{
+		$emailToken = EmailToken::model()->getToken($token);
+
+		if($emailToken) 
+		{
+			$account = $emailToken->account;
+
+			if(isset($_POST['Account']))
+			{
+				$account->new_password = $_POST['Account']['new_password'];
+				$account->confirm_password = $_POST['Account']['confirm_password'];
+				$account->setScenario('resetPassword');
+
+				if ( $account->new_password !== $account->confirm_password )
+				{
+					$valid = false;
+				}
+				else
+				{
+					$valid = true;
+				}
+
+				if($valid) 
+				{
+					$transaction = Yii::app()->db->beginTransaction();
+					try 
+					{
+						$accountSalt = Account::model()->generateSalt();
+						$account->salt = $accountSalt;
+						$account->password = Account::model()->hashPassword($account->new_password, $accountSalt);
+						$emailToken->status = EmailToken::STATUS_INACTIVE;
+
+						if($account->save(false))
+						{
+							if($emailToken->save(false)) 
+							{
+								$transaction->commit();
+								$message = "You have successfully reset your password. You can now login to Essex Funding.";
+								Yii::app()->user->setFlash('success', $message);
+								$this->redirect(array('/site/forgotPassword'));
+							}
+						}
+						else{
+							throw new Exception("Error Processing Reset Password", 1);
+							
+						}
+						
+					} catch (Exception $e) {
+
+						$transaction->rollBack();
+						$errors[] = "Error occurred while processing reset password.";
+						$this->forward('/site/errors');
+
+					}
+				}
+			}
+
+			$this->render('resetPassword', array(
+				'account' => $account,
+			));
+
+		}
+		else
+		{
+			throw new CHttpException(404, "The request page is not available");
+		}
+	}
+}

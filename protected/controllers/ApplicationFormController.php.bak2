@@ -1,0 +1,1044 @@
+<?php
+
+class ApplicationFormController extends Controller
+{
+	// public $layout = 'dashboard';
+	public function filters()
+	{
+		return array(
+			'accessControl', 
+		);
+	}
+
+	// public function accessRules()
+	// {
+		// return array(
+			// array(
+				// 'allow',
+				// 'actions' => array('upload', 'logout', 'form1'),
+				// 'users' => array('@'),
+			// ),
+			// array(
+				// 'allow',
+				// 'actions' => array('login', 'error', 'index'),
+				// 'users' => array('*'),
+			// ),
+			// array(
+				// 'deny',
+				// 'users' => array('*'),
+			// ),
+		// );
+	// }
+	
+	/**
+	 * Declares class-based actions.
+	 */
+	public function actions()
+	{
+		return array(
+			// captcha action renders the CAPTCHA image displayed on the contact page
+			'captcha'=>array(
+				'class'=>'CCaptchaAction',
+				'backColor'=>0xFFFFFF,
+			),
+			// page action renders "static" pages stored under 'protected/views/site/pages'
+			// They can be accessed via: index.php?r=site/page&view=FileName
+			'page'=>array(
+				'class'=>'CViewAction',
+			),
+		);
+	}
+
+	/**
+	 * This is the default 'index' action that is invoked
+	 * when an action is not explicitly requested by users.
+	 */
+	public function actionIndex()
+	{
+		// renders the view file 'protected/views/site/index.php'
+		// using the default layout 'protected/views/layouts/main.php'
+		$this->render('index');
+	}
+	
+	public function actionSetSessionId($id)
+	{
+		$_SESSION['applicationFormId'] = $id;
+	}
+	
+	public function actionCreditApplication($id = null)
+	{
+		// echo 'in'; exit;
+		// echo '<pre>';
+		// print_r($state); exit;
+            
+                $app_form = null;
+                $other_line = '';
+		
+		
+		if ( isset($_SESSION['applicationFormId']) OR $id )
+		{
+                        if($app_form == null) {
+                            if ( isset($_SESSION['applicationFormId']) AND $_SESSION['applicationFormId'] == $id AND !(Yii::app()->user->isGuest))
+                            {
+                                    //do nothing, keep the $id
+                                    $app_form = ApplicationForm::model()->find(array(
+                                            'condition' => 'id = :id AND account_id = :account_id',
+                                            'params' => array(
+                                                    ':id' => $id,
+                                                    ':account_id' => Yii::app()->user->account->id
+                                            )
+                                    ));
+                            }
+                        }
+                        
+                        if($app_form == null) {
+                            if ( $id AND !(Yii::app()->user->isGuest))
+                            {
+                                if(!Yii::app()->user->isGuest) {
+
+                                    //do nothing, keep the $id even if there is session
+                                    $app_form = ApplicationForm::model()->find(array(
+                                            'condition' => 'id = :id AND account_id = :account_id',
+                                            'params' => array(
+                                                    ':id' => $id,
+                                                    ':account_id' => Yii::app()->user->account->id
+                                            )
+                                    ));
+
+                                }
+                            }
+                        }
+                        
+                        if($app_form == null) {
+                            if(isset($_SESSION['applicationFormId'])) {
+                                $id = $_SESSION['applicationFormId'];
+                                $app_form = ApplicationForm::model()->find(array(
+                                        'condition' => 'id = :id',
+                                        'params' => array(
+                                                ':id' => $id
+                                        )
+                                ));
+                            }
+                            
+                        }
+                        
+                        if($app_form != null) {
+                            if($app_form->type == ApplicationForm::TYPE_PAID) {
+                                unset($_SESSION['applicationFormId']);
+                                $this->redirect(array('/applicationForm/creditApplication'));
+
+                            }
+                        }
+                        
+                            
+			
+			if ( $app_form )
+			{
+				//initialize models
+				$criteria = new CDbCriteria;
+				$criteria->condition = 'form_id = '.$app_form->id;
+
+				$app_form->business_start = date("m/d/Y", strtotime($app_form->business_start));
+				$app_form->business_incorporate = date("m/d/Y", strtotime($app_form->business_incorporate));
+				
+				$models = PrincipalInfo::model()->findAll($criteria);
+				foreach ( $models as $key => $modelValue )
+				{
+					$varStringName = 'principal'.($key+1);
+					$$varStringName = $modelValue;
+				}
+
+				if(!isset($principal1))
+					$principal1 = new PrincipalInfo;
+
+				if(!isset($principal2))
+					$principal2 = new PrincipalInfo;
+
+				if(!isset($principal3))
+					$principal3 = new PrincipalInfo;
+				
+				$models = TradeReference::model()->findAll($criteria);
+				foreach ( $models as $key => $modelValue )
+				{
+					if ( ($key+1) == 1 )
+					{
+						$varStringName = 'trade';
+					}
+					else
+					{
+						$varStringName = 'trade'.($key+1);
+					}
+					
+					$$varStringName = $modelValue;
+				}
+				
+				if(!isset($trade))
+					$trade = new TradeReference;
+
+				if(!isset($trade2))
+					$trade2 = new TradeReference;
+				
+				$vendor = VendorInfo::model()->find($criteria);
+                                
+                                switch($vendor->line_of_credit){
+                                    case "50,000": case "100,000": case "250,000":
+                                            // code
+                                        break;
+                                    default:
+                                            $other_line = $vendor->line_of_credit;
+                                        break;
+                                }
+				
+				$ecoa = Ecoa::model()->find($criteria);
+			}
+			else
+			{
+				//the id doesnt exist or not your account id
+				Yii::app()->user->setFlash('warning', 'The page that your trying to view is not available');
+				$this->redirect(array('account/index'));
+			}
+		}
+		else
+		{
+			$app_form = new ApplicationForm;
+		
+			$principal1 = new PrincipalInfo;
+			$principal2 = new PrincipalInfo;
+			$principal3 = new PrincipalInfo;
+			
+			$trade = new TradeReference;
+			$trade2 = new TradeReference;
+			
+			$vendor = new VendorInfo;
+			
+			$ecoa = new Ecoa;
+		}
+		
+		
+	
+		
+	
+		if(isset($_POST['step'])) {
+			$step = $_POST['step'];
+			switch ($step) {
+
+				case '1': case 1:
+						$this->performAjaxValidation(array($app_form));
+					break;
+
+				case '2': case 2:
+
+							$data1 = $_POST['PrincipalInfo'][1];
+							$principal1->setAttributes($data1);	
+
+							$data2 = $_POST['PrincipalInfo'][2];
+							$principal2->setAttributes($data2);
+
+							$data3 = $_POST['PrincipalInfo'][3];
+							$principal3->setAttributes($data3);
+
+							$validate = 0;
+
+							if(!empty($data1['name_title']) OR !empty($data1['address']) OR !empty($data1['location']) OR !empty($data1['ownership']) OR !empty($data1['security_number'])) {
+									$error1 = CActiveForm::validate($principal1);
+								 	if($error1 != "[]") {
+								 		$validate++;
+								 		echo CActiveForm::validate($principal1);
+										Yii::app()->end();
+								 	}
+								 		
+							}								
+							
+							if(!empty($data2['name_title']) OR !empty($data2['address']) OR !empty($data2['location']) OR !empty($data2['ownership']) OR !empty($data2['security_number'])) {
+									$error2 = CActiveForm::validate($principal2);
+									if($error2 != "[]") {
+										$validate++;
+										echo CActiveForm::validate($principal2);
+										Yii::app()->end();	
+									}
+										
+							}
+							
+							if(!empty($data3['name_title']) OR !empty($data3['address']) OR !empty($data3['location']) OR !empty($data3['ownership']) OR !empty($data3['security_number'])) {
+									$error3 = CActiveForm::validate($principal3);
+									if($error3 != "[]") {
+										$validate++;
+										echo CActiveForm::validate($principal3);
+										Yii::app()->end();
+									}
+										
+							}
+
+							if($validate == 0) {
+								echo CJSON::encode(array());
+								Yii::app()->end();
+							}
+
+							Yii::app()->end();
+								
+								
+					break;
+
+				case '3': case 3:
+							
+								$vendor->setAttributes($_POST['VendorInfo']);
+								$trade->setAttributes($_POST['TradeReference'][1]);
+								$trade2->setAttributes($_POST['TradeReference'][2]);
+								$validate = 0;
+
+								if(!empty($trade->trade_name) OR !empty($trade->trade_location) OR !empty($trade->trade_phone) OR !empty($trade->trade_contact) OR !empty($trade->trade_account_number)) {
+										
+										$error1 = CActiveForm::validate($trade);
+									 	
+									 	if($error1 != "[]") {
+									 		$validate++;
+									 		echo CActiveForm::validate($trade);
+											Yii::app()->end();
+									 	}
+									 		
+								}
+								
+								/*
+								if(!empty($trade2->trade_name) OR !empty($trade2->trade_location) OR !empty($trade2->trade_phone) OR !empty($trade2->trade_contact) OR !empty($trade2->trade_account_number)) {
+										
+										$error2 = CActiveForm::validate($trade2);
+									 	
+									 	if($error2 != "[]") {
+									 		$validate++;
+									 		echo CActiveForm::validate($trade2);
+											Yii::app()->end();
+									 	}
+									 		
+								}
+								*/
+								
+										
+								$error3 = CActiveForm::validate($vendor);
+							 	
+							 	if($error3 != "[]") {
+							 		$validate++;
+							 		echo CActiveForm::validate($vendor);
+									Yii::app()->end();
+							 	}
+									 		
+								
+
+								if($validate == 0) {
+									echo CJSON::encode(array());
+									Yii::app()->end();
+								}
+
+								Yii::app()->end();
+
+					break;
+
+				case '4': case 4:
+							$ecoa->setAttributes($_POST['Ecoa']);
+							$this->performAjaxValidation(array($ecoa));
+					break;
+				
+				default:
+					# code...
+					break;
+			}
+		}
+		
+		
+
+		// $cities = Cities::model()->findAll();
+		$state = State::model()->findAll();
+		
+		if(isset($_POST['ajax']) && $_POST['ajax']==='application-form')
+		{
+			Yii::app()->end();
+		}
+		
+		// if(isset($_POST['ajax']) && $_POST['ajax']==='application-form')
+		// {
+		// 	echo CActiveForm::validate($app_form);
+		// 	echo CActiveForm::validate($principal1);
+		// 	echo CActiveForm::validate($principal2);
+		// 	echo CActiveForm::validate($principal3);
+		// 	echo CActiveForm::validate($trade);
+		// 	echo CActiveForm::validate($trade2);
+		// 	echo CActiveForm::validate($vendor);
+		// 	echo CActiveForm::validate($ecoa);
+		// 	Yii::app()->end();
+		// }
+
+		if(isset($_POST['ApplicationForm']) AND !empty($_POST['applicationCreditFormProcess']))
+		{
+			// echo '<pre>';
+			// print_r($_POST); 
+			// print_r($_FILES); exit;
+			
+			$connection = Yii::app()->db;
+			$transaction = $connection->beginTransaction();
+			
+			$app_form -> attributes = $_POST['ApplicationForm'];
+	
+			$principal1 -> attributes = $_POST['PrincipalInfo'][1];
+			$principal2 -> attributes = $_POST['PrincipalInfo'][2];
+			$principal3 -> attributes = $_POST['PrincipalInfo'][3];
+			
+			$trade -> attributes = $_POST['TradeReference'][1];
+			$trade2 -> attributes = $_POST['TradeReference'][2];
+			$vendor -> attributes = $_POST['VendorInfo'];
+			
+			$ecoa -> attributes = $_POST['Ecoa'];
+			
+			if(isset($_POST['other']))
+			{
+				$other_line  = $_POST['other'];
+			}
+			
+			// $app_form -> scenario = 'app_submit'; 
+			$app_form -> business_start = date('Y-m-d H:i:s',strtotime($app_form -> business_start));
+			$app_form -> business_incorporate = date('Y-m-d H:i:s',strtotime($app_form -> business_incorporate));
+			$app_form -> date_submitted = date('Y-m-d H:i:s');
+					
+			
+			if($app_form -> tax_exempt == 'Y')
+			{
+				if(empty($app_form->exempt_certificate_path))
+				{
+					/*catch if the $_POST field for file upload returns a empty string but file is uploaded*/
+					if(!empty($_FILES['ApplicationForm']))
+					{
+						$app_form->exempt_certificate_path = $_FILES['ApplicationForm']['name']['exempt_certificate_path'];
+ 					}
+				}
+				$uploadFile = CUploadedFile::getInstance($app_form, 'exempt_certificate_path');
+				$fileName = "{$uploadFile}";
+				$app_form->exempt_certificate_path = substr(number_format(time() * rand(),0,'',''),0,10).$fileName;
+			}
+			else
+			{
+				$app_form->exempt_certificate_path = "";
+			}
+			$valid = $app_form -> validate('app_submit');
+
+			if($valid)
+			{
+				if(isset($uploadFile))
+				{
+					if($uploadFile->saveAs(Yii::app()->basePath.'/file-uploads/'.$fileName));
+				}
+				$app_form->type = ApplicationForm::TYPE_PENDING;
+				$app_form -> save(false);
+
+				if(!empty($principal1->name_title)) {
+					$principal1 -> form_id = $app_form -> id;
+					$valid = $valid && $principal1 -> validate(); 
+				}
+
+				if(!empty($principal2->name_title)) {
+					$principal2 -> form_id = $app_form -> id;
+					$valid = $valid && $principal2 -> validate();
+				}
+
+				if(!empty($principal3->name_title)) {
+					$principal3 -> form_id = $app_form -> id;
+					$valid = $valid && $principal3 -> validate();
+				}
+
+
+
+				if($valid)
+				{
+					/*text box option*/
+					if(empty($vendor ->line_of_credit))
+					{
+						$vendor ->line_of_credit = $other_line;
+					} 
+
+
+					$trade -> form_id = $app_form -> id;
+					$trade2 -> form_id = $app_form -> id;
+					$vendor -> form_id = $app_form -> id;
+
+					$valid_lvl2 = true;
+
+					if(!empty($trade->trade_name)) {
+						$valid_lvl2 = $trade->validate();
+					}
+
+					if(!empty($trade2->trade_name)) {
+						$valid_lvl2 = $valid_lvl2 && $trade2->validate();
+					}
+					
+					$valid_s3 = $valid_lvl2 && $vendor -> validate();
+					
+					$valid = $valid && $valid_s3;
+
+					if($valid)
+					{
+						$ecoa -> form_id = $app_form -> id;
+						$valid = $ecoa ->validate();
+						
+						if($valid)
+						{
+							//save everything else
+							$principal1 -> save(false);
+							$principal2 -> save(false);
+							$principal3 -> save(false);
+							$trade -> save(false);
+							$trade2 -> save(false);
+							$vendor -> save(false);
+							$ecoa -> save(false);
+							
+							$transaction -> commit();
+							// Yii::app()->user->setFlash('success', "Application Form successfully submitted!");
+							
+							$redirectUrl = array('applicationForm/creditApplication');
+							$_SESSION['applicationFormId'] = $app_form->getPrimaryKey();
+							
+							if ( isset($_POST['applicationCreditFormProcess']) )
+							{
+								if ( $_POST['applicationCreditFormProcess'] == 1 )
+								{
+									if ( Yii::app()->user->isGuest )
+										$redirectUrl = array('site/login','sendTo' => 'checkout');
+									else
+										$redirectUrl = array('applicationForm/summary', 'id' => $app_form->id);
+								}
+								else
+								{
+									$redirectUrl = array('site/login','sendTo' => 'saveApplicationForm');
+								}
+							}
+							else
+							{
+								$redirectUrl = array('site/login','sendTo' => 'checkout');
+							}
+							
+							$this-> redirect($redirectUrl);
+						}
+						else
+						{
+							$transaction -> rollback();
+						}
+					}
+					else
+					{
+						$transaction -> rollback();
+					}
+				}
+				else
+				{
+					$transaction -> rollback();
+				}
+			}
+			else
+			{
+				$transaction -> rollback();
+			}
+		}
+		
+		
+		
+		$this->render('form',array(
+			'app_form' => $app_form,
+			'principal1' => $principal1,
+			'principal2' => $principal2,
+			'principal3' => $principal3,
+			'trade' => $trade,
+			'trade2' => $trade2,
+			'vendor' => $vendor,
+			'ecoa' => $ecoa,
+			// 'cities' => $cities,
+			'state'  => $state,
+			'other_line' => $other_line,
+			'model' => array($app_form, $principal1, $principal2, $principal3, $trade, $trade2, $vendor,  $ecoa),
+		));
+	}
+	
+	public function actionDynamicCity() 
+	{
+		// The following command does not work
+		$data=Cities::model()->findAll('state_code=:s_code',
+				array(':s_code'=> $_POST['ApplicationForm']['state']));
+
+
+		$data=CHtml::listData($data,'id','city');
+		foreach($data as $value=>$subcategory)  {
+			echo CHtml::tag('option',
+			   array('value'=>$value),CHtml::encode($subcategory),true);
+		}
+	}
+
+	/**
+	 * Performs the AJAX validation.
+	 * @param Account $model the model to be validated
+	 */
+	protected function performAjaxValidation($models)
+	{
+		if(isset($_POST['ajax']))
+		{
+			echo CActiveForm::validate($models);
+			Yii::app()->end();
+		}
+	}
+	
+	public function actionApplicationWebView($id, $accountId)
+	{
+		$this->layout = 'layout_blank';
+		if ( $id )
+		{
+			$app_form = ApplicationForm::model()->find(array(
+				'condition' => 'id = :id AND account_id = :account_id',
+				'params' => array(
+					':id' => $id,
+					':account_id' => $accountId
+				)
+			));
+			
+			if ( $app_form )
+			{
+				//initialize models
+				$criteria = new CDbCriteria;
+				$criteria->condition = 'form_id = '.$app_form->id;
+
+				$app_form->business_start = date("m/d/Y", strtotime($app_form->business_start));
+				$app_form->business_incorporate = date("m/d/Y", strtotime($app_form->business_incorporate));
+
+				$models = PrincipalInfo::model()->findAll($criteria);
+				foreach ( $models as $key => $modelValue )
+				{
+					$varStringName = 'principal'.($key+1);
+					$$varStringName = $modelValue;
+				}
+				
+				if(!isset($principal1))
+					$principal1 = new PrincipalInfo;
+				if(!isset($principal2))
+					$principal2 = new PrincipalInfo;
+				if(!isset($principal3))
+					$principal3 = new PrincipalInfo;
+				
+				$models = TradeReference::model()->findAll($criteria);
+				foreach ( $models as $key => $modelValue )
+				{
+					if ( ($key+1) == 1 )
+					{
+						$varStringName = 'trade';
+					}
+					else
+					{
+						$varStringName = 'trade'.($key+1);
+					}
+					
+					$$varStringName = $modelValue;
+				}
+				
+				if(!isset($trade))
+					$trade = new TradeReference;
+				if(!isset($trade2))
+					$trade2 = new TradeReference;
+				
+				$vendor = VendorInfo::model()->find($criteria);
+				
+				$ecoa = Ecoa::model()->find($criteria);
+			}
+			else
+			{
+				Yii::app()->user->setFlash('warning', 'The page that your trying to view is not available 2');
+				$this->redirect(array('account/index'));
+			}
+		}
+		else
+		{
+			Yii::app()->user->setFlash('warning', 'The page that your trying to view is not available 1');
+			$this->redirect(array('account/index'));
+		}
+		
+		$state = State::model()->findAll();
+		$other_line = '';
+		
+		$this->render('formView',array(
+			'app_form' => $app_form,
+			'principal1' => $principal1,
+			'principal2' => $principal2,
+			'principal3' => $principal3,
+			'trade' => $trade,
+			'trade2' => $trade2,
+			'vendor' => $vendor,
+			'ecoa' => $ecoa,
+
+			'state'  => $state,
+			'other_line' => $other_line,
+			'model' => array($app_form, $principal1, $principal2, $principal3, $trade, $trade2, $vendor,  $ecoa),
+		));
+	}
+	
+	public function actionSummary($id)
+	{
+            
+            $state = State::model()->findAll();
+            $other_line = "";
+            $app_form = null;
+            
+            if($app_form == null) {
+                
+                if ( isset($_SESSION['applicationFormId']) AND $_SESSION['applicationFormId'] == $id AND !(Yii::app()->user->isGuest))
+                {
+
+                    //do nothing, keep the $id
+                    $app_form = ApplicationForm::model()->find(array(
+                            'condition' => 'id = :id AND account_id = :account_id',
+                            'params' => array(
+                                    ':id' => $id,
+                                    ':account_id' => Yii::app()->user->account->id
+                            )
+                    ));
+
+
+                }
+                
+            }
+            
+            if($app_form == null) {
+                
+                if ( $id AND !(Yii::app()->user->isGuest) )
+                {
+
+                    //do nothing, keep the $id even if there is session
+                    $app_form = ApplicationForm::model()->find(array(
+                            'condition' => 'id = :id AND account_id = :account_id',
+                            'params' => array(
+                                    ':id' => $id,
+                                    ':account_id' => Yii::app()->user->account->id
+                            )
+                    ));
+
+
+                }
+                
+            }
+            
+            if($app_form == null)
+            {
+                    $id = $_SESSION['applicationFormId'];
+                    $app_form = ApplicationForm::model()->find(array(
+                            'condition' => 'id = :id',
+                            'params' => array(
+                                    ':id' => $id
+                            )
+                    ));
+            }
+
+            if ( $app_form )
+            {
+                    //initialize models
+                    $criteria = new CDbCriteria;
+                    $criteria->condition = 'form_id = '.$app_form->id;
+                    
+                    if(!Yii::app()->user->isGuest) {
+                        // set $app_form account_id to the current viewer
+                        $authAccount = Yii::app()->user->account;
+                        $app_form->account_id = $authAccount->id;
+                        $app_form->save(false);
+                    }
+					
+					$app_form->business_start = date("m/d/Y", strtotime($app_form->business_start));
+                    $app_form->business_incorporate = date("m/d/Y", strtotime($app_form->business_incorporate));
+
+                    $models = PrincipalInfo::model()->findAll($criteria);
+                    
+                    foreach ( $models as $key => $modelValue )
+                    {
+                            $varStringName = 'principal'.($key+1);
+                            $$varStringName = $modelValue;
+                    }
+
+                    if(!isset($principal1))
+                            $principal1 = new PrincipalInfo;
+                    if(!isset($principal2))
+                            $principal2 = new PrincipalInfo;
+                    if(!isset($principal3))
+                            $principal3 = new PrincipalInfo;
+
+                    $models = TradeReference::model()->findAll($criteria);
+                    
+                    foreach ( $models as $key => $modelValue )
+                    {
+                            if ( ($key+1) == 1 )
+                            {
+                                    $varStringName = 'trade';
+                            }
+                            else
+                            {
+                                    $varStringName = 'trade'.($key+1);
+                            }
+
+                            $$varStringName = $modelValue;
+                    }
+
+                    if(!isset($trade))
+                            $trade = new TradeReference;
+                    if(!isset($trade2))
+                            $trade2 = new TradeReference;
+
+                    $vendor = VendorInfo::model()->find($criteria);
+                    
+                    switch($vendor->line_of_credit) {
+                        case "50,000": case "100,000": case "250,000":
+                                
+                            break;
+                        default:
+                                $other_line = $vendor->line_of_credit;
+                            break;
+                    }
+
+                    $ecoa = Ecoa::model()->find($criteria);
+                    
+            }
+            else
+            {
+                    Yii::app()->user->setFlash('warning', 'The page that your trying to view is not available');
+                    $this->redirect(array('account/index'));
+            }
+                       
+            $this->render('summary',array(
+                    'app_form' => $app_form,
+                    'principal1' => $principal1,
+                    'principal2' => $principal2,
+                    'principal3' => $principal3,
+                    'trade' => $trade,
+                    'trade2' => $trade2,
+                    'vendor' => $vendor,
+                    'ecoa' => $ecoa,
+
+                    'state'  => $state,
+                    'other_line' => $other_line,
+            ));
+	}
+        
+     public function actionView($id)
+	{
+            
+            $state = State::model()->findAll();
+            $other_line = "";
+            $app_form = null;
+            
+            if($app_form == null) {
+                
+                if ( isset($_SESSION['applicationFormId']) AND $_SESSION['applicationFormId'] == $id AND !(Yii::app()->user->isGuest))
+                {
+
+                    //do nothing, keep the $id
+                    $app_form = ApplicationForm::model()->find(array(
+                            'condition' => 'id = :id AND account_id = :account_id',
+                            'params' => array(
+                                    ':id' => $id,
+                                    ':account_id' => Yii::app()->user->account->id
+                            )
+                    ));
+
+
+                }
+                
+            }
+            
+            if($app_form == null) {
+                
+                if ( $id AND !(Yii::app()->user->isGuest) )
+                {
+
+                    //do nothing, keep the $id even if there is session
+                    $app_form = ApplicationForm::model()->find(array(
+                            'condition' => 'id = :id AND account_id = :account_id',
+                            'params' => array(
+                                    ':id' => $id,
+                                    ':account_id' => Yii::app()->user->account->id
+                            )
+                    ));
+
+
+                }
+                
+            }
+            
+            if($app_form == null)
+            {
+                    $id = $_SESSION['applicationFormId'];
+                    $app_form = ApplicationForm::model()->find(array(
+                            'condition' => 'id = :id',
+                            'params' => array(
+                                    ':id' => $id
+                            )
+                    ));
+            }
+
+            if ( $app_form )
+            {
+                    //initialize models
+                    $criteria = new CDbCriteria;
+                    $criteria->condition = 'form_id = '.$app_form->id;
+
+                    $app_form->business_start = date("m/d/Y", strtotime($app_form->business_start));
+                    $app_form->business_incorporate = date("m/d/Y", strtotime($app_form->business_incorporate));
+
+                    $models = PrincipalInfo::model()->findAll($criteria);
+                    
+                    foreach ( $models as $key => $modelValue )
+                    {
+                            $varStringName = 'principal'.($key+1);
+                            $$varStringName = $modelValue;
+                    }
+
+                    if(!isset($principal1))
+                            $principal1 = new PrincipalInfo;
+                    if(!isset($principal2))
+                            $principal2 = new PrincipalInfo;
+                    if(!isset($principal3))
+                            $principal3 = new PrincipalInfo;
+
+                    $models = TradeReference::model()->findAll($criteria);
+                    
+                    foreach ( $models as $key => $modelValue )
+                    {
+                            if ( ($key+1) == 1 )
+                            {
+                                    $varStringName = 'trade';
+                            }
+                            else
+                            {
+                                    $varStringName = 'trade'.($key+1);
+                            }
+
+                            $$varStringName = $modelValue;
+                    }
+
+                    if(!isset($trade))
+                            $trade = new TradeReference;
+                    if(!isset($trade2))
+                            $trade2 = new TradeReference;
+
+                    $vendor = VendorInfo::model()->find($criteria);
+                    
+                    switch($vendor->line_of_credit) {
+                        case "50,000": case "100,000": case "250,000":
+                                
+                            break;
+                        default:
+                                $other_line = $vendor->line_of_credit;
+                            break;
+                    }
+
+                    $ecoa = Ecoa::model()->find($criteria);
+                    
+            }
+            else
+            {
+                    Yii::app()->user->setFlash('warning', 'The page that your trying to view is not available');
+                    $this->redirect(array('account/index'));
+            }
+                       
+            $this->render('summary',array(
+                    'app_form' => $app_form,
+                    'principal1' => $principal1,
+                    'principal2' => $principal2,
+                    'principal3' => $principal3,
+                    'trade' => $trade,
+                    'trade2' => $trade2,
+                    'vendor' => $vendor,
+                    'ecoa' => $ecoa,
+                    'state'  => $state,
+                    'other_line' => $other_line,
+            ));
+	}
+	
+	public function actionAdminView($id)
+	{
+            $state = State::model()->findAll();
+            $other_line = "";
+            $app_form = null;
+            
+			//do nothing, keep the $id
+			$app_form = ApplicationForm::model()->find(array(
+				'condition' => 'id = :id',
+				'params' => array(
+						':id' => $id,
+				)
+			));
+ 
+            if ( $app_form )
+            {
+                    //initialize models
+                    $criteria = new CDbCriteria;
+                    $criteria->condition = 'form_id = '.$app_form->id;
+
+                    $app_form->business_start = date("m/d/Y", strtotime($app_form->business_start));
+                    $app_form->business_incorporate = date("m/d/Y", strtotime($app_form->business_incorporate));
+
+                    $models = PrincipalInfo::model()->findAll($criteria);
+                    
+                    foreach ( $models as $key => $modelValue )
+                    {
+                            $varStringName = 'principal'.($key+1);
+                            $$varStringName = $modelValue;
+                    }
+
+                    if(!isset($principal1))
+                            $principal1 = new PrincipalInfo;
+                    if(!isset($principal2))
+                            $principal2 = new PrincipalInfo;
+                    if(!isset($principal3))
+                            $principal3 = new PrincipalInfo;
+
+                    $models = TradeReference::model()->findAll($criteria);
+                    
+                    foreach ( $models as $key => $modelValue )
+                    {
+                            if ( ($key+1) == 1 )
+                            {
+                                    $varStringName = 'trade';
+                            }
+                            else
+                            {
+                                    $varStringName = 'trade'.($key+1);
+                            }
+
+                            $$varStringName = $modelValue;
+                    }
+
+                    if(!isset($trade))
+                            $trade = new TradeReference;
+                    if(!isset($trade2))
+                            $trade2 = new TradeReference;
+
+                    $vendor = VendorInfo::model()->find($criteria);
+                    
+                    switch($vendor->line_of_credit) {
+                        case "50,000": case "100,000": case "250,000":
+                                
+                            break;
+                        default:
+                                $other_line = $vendor->line_of_credit;
+                            break;
+                    }
+
+                    $ecoa = Ecoa::model()->find($criteria);
+                    
+            }
+            else
+            {
+                    Yii::app()->user->setFlash('warning', 'The page that your trying to view is not available');
+                    $this->redirect(array('account/index'));
+            }
+                       
+            $this->render('summary',array(
+                    'app_form' => $app_form,
+                    'principal1' => $principal1,
+                    'principal2' => $principal2,
+                    'principal3' => $principal3,
+                    'trade' => $trade,
+                    'trade2' => $trade2,
+                    'vendor' => $vendor,
+                    'ecoa' => $ecoa,
+                    'state'  => $state,
+                    'other_line' => $other_line,
+            ));
+	}
+}
